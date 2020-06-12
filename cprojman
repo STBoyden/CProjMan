@@ -39,11 +39,10 @@ case $command in
             exit
         fi
 
-        make clean >/dev/null
-
         projectname="$(cat premake4.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
 
         premake4 gmake >/dev/null
+        make clean >/dev/null
         make $makeargs >/dev/null
         echo -e "Building $mode mode...\n"
         ;;
@@ -72,11 +71,10 @@ case $command in
             exit
         fi
 
-        make clean >/dev/null
-
         projectname="$(cat premake4.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
 
         premake4 gmake >/dev/null
+        make clean >/dev/null
         make $makeargs >/dev/null
         echo -e "Building $mode mode...\n"
         ./bin/$mode/$projectname
@@ -105,7 +103,6 @@ case $command in
             case $arg in
                 -l=*|--lang=*)
                     language="${arg#*=}"
-                    echo $language
                     extension=".c"
                     case $language in
                         cpp|c++|cxx)
@@ -129,7 +126,7 @@ case $command in
                     cd ..
 
                     sed -i "s/language \"C\"/language \"$language\"/g" premake4.lua
-                    sed -i "s/files { \"\*\*.c\"/{ \"\*\*.$extension\"/g" premake4.lua
+                    sed -i "s/files { \"\*\*.c\"/files { \"\*\*.$extension\"/g" premake4.lua
                     ;;
                 -n=*|--name=*)
                     projectname="${arg#*=}"
