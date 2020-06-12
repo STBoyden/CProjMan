@@ -98,6 +98,7 @@ case $command in
         cd $directory
         git rm -rf .git
         git init
+        git add .
 
         for arg in $subargs; do
             case $arg in
