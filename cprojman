@@ -1,0 +1,150 @@
+#!/bin/bash
+
+begins_with() {
+    case $2 in
+        "$1"*)
+            true;;
+        *)
+            false;;
+    esac
+}
+
+IFS=' ' read -ra ARGUMENTS <<< "$@"
+REPO="https://github.com/STBoyden/c-project-template"
+
+command=${ARGUMENTS[0]}
+
+case $command in
+    build)
+        subargs=${ARGUMENTS[@]:1:${#ARGUMENTS[@]}}
+        makeargs=""
+        mode="debug"
+
+        for arg in $subargs; do
+            case $arg in
+                -d|--debug)
+                    ;;
+                -r|--release)
+                    makeargs="config=release"
+                    mode="release"
+                    ;;
+                *)
+                    echo "Invalid argument"
+                    ;;
+            esac
+        done
+
+        if [[ ! -f "premake4.lua" ]]; then
+            echo "Could not find the required \"premake4.lua\" file. Please either create your own or create a project using this script"
+            exit
+        fi
+
+        make clean >/dev/null
+
+        projectname="$(cat premake4.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
+
+        premake4 gmake >/dev/null
+        make $makeargs >/dev/null
+        echo -e "Building $mode mode...\n"
+        ;;
+
+    run)
+        subargs=${ARGUMENTS[@]:1:${#ARGUMENTS[@]}}
+        makeargs=""
+        mode="debug"
+
+        for arg in $subargs; do
+            case $arg in
+                -d|--debug)
+                    ;;
+                -r|--release)
+                    makeargs="config=release"
+                    mode="release"
+                    ;;
+                *)
+                    echo "Invalid argument"
+                    ;;
+            esac
+        done
+
+        if [[ ! -f "premake4.lua" ]]; then
+            echo "Could not find the required \"premake4.lua\" file. Please either create your own or create a project using this script"
+            exit
+        fi
+
+        make clean >/dev/null
+
+        projectname="$(cat premake4.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
+
+        premake4 gmake >/dev/null
+        make $makeargs >/dev/null
+        echo -e "Building $mode mode...\n"
+        ./bin/$mode/$projectname
+        ;;
+    new)
+        directory="${ARGUMENTS[1]}"
+        projectname=""
+        subargs=${ARGUMENTS[@]:1:${#ARGUMENTS[@]}}
+
+        if begins_with "-" $directory; then
+            echo "Not a valid directory."
+            exit
+        fi
+
+        if [[ -d  $directory ]]; then
+            echo "Cannot create directory \"$directory\", as it already exists. Please specify an empty directory."
+            exit
+        fi
+
+        git clone "$REPO" $directory
+        cd $directory
+        git rm -rf .git
+        git init
+
+        for arg in $subargs; do
+            case $arg in
+                -l=*|--lang=*)
+                    language="${arg#*=}"
+                    echo $language
+                    extension=".c"
+                    case $language in
+                        cpp|c++|cxx)
+                            language="C++"
+                            extension="cpp"
+                            ;;
+                        c)
+                            language="C"
+                            extension="c"
+                            ;;
+                        *)
+                            echo "Unsupported language. Please use a supported language (C, C++)."
+                            exit
+                            ;;
+                    esac
+
+                    cd src 
+                    for file in *; do
+                        mv $file ${file%.*}.$extension
+                    done
+                    cd ..
+
+                    sed -i "s/language \"C\"/language \"$language\"/g" premake4.lua
+                    sed -i "s/files { \"\*\*.c\"/{ \"\*\*.$extension\"/g" premake4.lua
+                    ;;
+                -n=*|--name=*)
+                    projectname="${arg#*=}"
+                    ;;
+            esac
+        done
+
+        if [[ -z $projectname ]]; then
+            echo "No project name specified, using directory name instead."
+            projectname="$directory"
+        fi
+
+        sed -i "s/CProject/$projectname/g" premake4.lua
+        ;;
+    *)
+        echo "Could not find the command \"$command\"."
+        ;;
+esac
