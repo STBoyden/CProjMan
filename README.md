@@ -35,7 +35,8 @@ Options:
 - `-d`, `--debug` (default): Builds the project in debug mode.
 - `-r`, `--release`: Builds the project in release mode.
 
-## Todo
 
-[ ] Auto update script
-[ ] Display command help on invalid usage.
+## To Do
+
+- [ ] Auto update script
+- [ ] Display command help on invalid usage.
