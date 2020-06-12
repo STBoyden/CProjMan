@@ -4,8 +4,8 @@ This is a simple script, inspired by Rust's Cargo, to help with the creation, co
 running of C/C++ binaries using premake4 as it's build system. The commands are fairly 
 self-explanatory and thus, easy to use.
 
-To make the script even more useful, place it somewhere in your ditro's PATH environment variable so
-it can be accessed from any point.
+To make the script even more useful, place it somewhere in your distro's PATH environment variable 
+so it can be accessed from any point.
 
 ## Commands
 
@@ -35,3 +35,7 @@ Options:
 - `-d`, `--debug` (default): Builds the project in debug mode.
 - `-r`, `--release`: Builds the project in release mode.
 
+## Todo
+
+[ ] Auto update script
+[ ] Display command help on invalid usage.
