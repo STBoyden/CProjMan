@@ -98,7 +98,6 @@ case $command in
         cd $directory
         git rm -rf .git
         git init
-        git add .
 
         for arg in $subargs; do
             case $arg in
@@ -134,6 +133,7 @@ case $command in
                     ;;
             esac
         done
+        git add .
 
         if [[ -z $projectname ]]; then
             echo "No project name specified, using directory name instead."
