@@ -104,6 +104,7 @@ case $command in
                 -l=*|--lang=*)
                     language="${arg#*=}"
                     extension=".c"
+                    shopt -s nocasematch
                     case $language in
                         cpp|c++|cxx)
                             language="C++"
@@ -118,6 +119,8 @@ case $command in
                             exit
                             ;;
                     esac
+
+                    shopt -u nocasematch
 
                     cd src 
                     for file in *; do
