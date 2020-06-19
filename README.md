@@ -39,4 +39,4 @@ Options:
 ## To Do
 
 - [ ] Auto update script
-- [ ] Display command help on invalid usage.
+- [x] Display command help on invalid usage.

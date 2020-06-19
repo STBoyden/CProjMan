@@ -9,12 +9,41 @@ begins_with() {
     esac
 }
 
+print_help() {
+    echo "USAGE: cprojman [SUBCOMMAND]"
+    echo ""
+    echo "Available subcommands:"
+    echo "  - help: Print this help display."
+    echo ""
+    echo "  - new: Create a new C/C++ project."
+    echo "      - USAGE: new [PROJECTDIR] [OPTIONS]"
+    echo "      - OPTIONS:"
+    echo "          - -l=X, --lang=X: Set the project language to X (C/C++)."
+    echo "          - -n=X, --name=X: Set the project name to X."
+    echo ""
+    echo "  - run: Run the current C/C++ project."
+    echo "      - USAGE: run [OPTIONS]"
+    echo "      - OPTIONS:"
+    echo "          - -d, --debug: Set the project to build and run in debug mode (default mode)."
+    echo "          - -r, --release: Set the project to build and run in release mode."
+    echo ""
+    echo "  - build: Build the current C/C++ project."
+    echo "      - USAGE: build [OPTIONS]"
+    echo "      - OPTIONS:"
+    echo "          - -d, --debug: Set the project to build in debug mode (default mode)."
+    echo "          - -r, --release: Set the project to build in release mode."
+    echo ""
+}
+
 IFS=' ' read -ra ARGUMENTS <<< "$@"
 REPO="https://github.com/STBoyden/c-project-template"
 
 command=${ARGUMENTS[0]}
 
 case $command in
+    help)
+        print_help
+        ;;
     build)
         subargs=${ARGUMENTS[@]:1:${#ARGUMENTS[@]}}
         makeargs=""
@@ -147,5 +176,7 @@ case $command in
         ;;
     *)
         echo "Could not find the command \"$command\"."
+        echo ""
+        print_help
         ;;
 esac
