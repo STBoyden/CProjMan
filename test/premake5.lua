@@ -1,7 +1,7 @@
-solution "CProject"
+solution "cunt"
     configurations { "Debug", "Release" }
 
-    project "CProject"
+    project "cunt"
         kind "ConsoleApp"
         language "C"
         files { "**.c", "**.h"}
