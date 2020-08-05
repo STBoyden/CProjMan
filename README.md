@@ -7,6 +7,8 @@ self-explanatory and thus, easy to use.
 To make the script even more useful, place it somewhere in your distro's PATH environment variable 
 so it can be accessed from any point.
 
+**Requirements**: Git and Premake5
+
 ## To Do
 
 - [ ] Auto update script
