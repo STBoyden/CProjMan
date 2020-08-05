@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #!/bin/bash
+=======
+#!/usr/bin/env sh
+>>>>>>> Multiple changes
 
 begins_with() {
     case $2 in
@@ -9,6 +13,164 @@ begins_with() {
     esac
 }
 
+<<<<<<< HEAD
+=======
+run() {
+    shift 1
+
+    local subargs="$@"
+    local mode="debug"
+    local projectname=$(cat premake5.lua | egrep "project" | awk '{print $2}' | sed 's/"//g')
+
+    for arg in $subargs; do 
+        case $arg in
+            -d|--debug)
+                ;;
+            -r|--release)
+                mode="release"
+                ;;
+            *)
+                echo "Invalid argument"
+                ;;
+        esac
+    done
+
+
+    ./bin/$mode/$projectname
+    echo ""
+}
+
+build() {
+    shift 1
+
+    local subargs="$@"
+    local makeargs=""
+    local mode="debug"
+
+    for arg in $subargs; do
+        case $arg in
+            -d|--debug)
+                ;;
+            -r|--release)
+                makeargs="config=release"
+                mode="release"
+                ;;
+            *)
+                echo "Invalid argument"
+                ;;
+        esac
+    done
+
+    if [[ ! -f "premake5.lua" ]]; then
+        echo "Could not find the required \"premake5.lua\" file. Please either create the file manually, or use this" \
+            "script to do it automatically."
+                    exit
+    fi
+
+    local projectname="$(cat premake5.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
+
+    echo "----| Building in $mode mode |----"
+
+    echo -n "Building Unix Makefiles using premake5..."
+    premake5 gmake >/dev/null && echo "Done." || echo "Could not finish."
+    echo -n "Cleaning any previous build artifacts..."
+    make clean >/dev/null && echo "Done." || echo "Could not finish."
+    echo -n "Building using make..."
+    make $makeargs >/dev/null && echo "Done." || echo "Could not finish."
+}
+
+new() {
+    local projectname=""
+    local directory="$(echo $@ | awk '{print $2}')"
+    shift 2
+    local subargs="$@"
+
+    if begins_with "-" $directory; then
+        echo "Not a valid directory."
+        exit
+    fi
+
+    if [[ -d  $directory ]]; then
+        echo "Cannot create directory \"$directory\", as it already exists. Please specify an empty directory."
+        exit
+    fi
+
+
+    echo "----| Initialising project directory |----"
+
+    echo -n "Cloning project template..."
+    git clone "$REPO" $directory &>/dev/null && echo "Done." || echo "Could not complete." && exit
+    cd $directory
+    echo -n "Cleaning template..."
+    rm -rf .git &>/dev/null && echo "Done." || echo "Could not complete." && exit
+    echo -n "Creating a new Git repository..."
+    git init &>/dev/null && echo "Done." || echo "Could not complete." && exit
+
+    for arg in $subargs; do
+        case $arg in
+            -l=*|--lang=*)
+                local language="${arg#*=}"
+                local extension=".c"
+                shopt -s nocasematch
+                case $language in
+                    cpp|c++|cxx)
+                        language="C++"
+                        extension="cpp"
+                        ;;
+                    c)
+                        language="C"
+                        extension="c"
+                        ;;
+                    *)
+                        echo "Unsupported language. Please use a supported language (C, C++)."
+                        exit
+                        ;;
+                esac
+
+                shopt -u nocasematch
+
+                cd src 
+                for file in *; do
+                    mv $file ${file%.*}.$extension
+                done
+                cd ..
+
+                sed -i "s/language \"C\"/language \"$language\"/g" premake5.lua
+                sed -i "s/files { \"\*\*.c\"/files { \"\*\*.$extension\"/g" premake5.lua
+                ;;
+            -n=*|--name=*)
+                projectname="${arg#*=}"
+                ;;
+        esac
+    done
+    git add .
+
+    if [[ -z $projectname ]]; then
+        echo "No project name specified, using directory name instead."
+        projectname="$directory"
+    fi
+
+    sed -i "s/CProject/$projectname/g" premake5.lua
+}
+
+clean() {
+    echo "----| Cleaning project |----"
+
+    if [[ ! -f "premake5.lua" ]]; then
+        echo "Either not in project directory or \"premake5.lua\" has been removed."
+        exit
+    fi
+
+    local to_delete=("bin" "obj" "CProject.make" "Makefile")
+
+    for fd in ${to_delete[@]}; do
+        rm -rf $fd
+    done
+
+    echo "Done."
+}
+
+>>>>>>> Multiple changes
 print_help() {
     echo "USAGE: cprojman [SUBCOMMAND]"
     echo ""
@@ -33,6 +195,12 @@ print_help() {
     echo "          - -d, --debug: Set the project to build in debug mode (default mode)."
     echo "          - -r, --release: Set the project to build in release mode."
     echo ""
+<<<<<<< HEAD
+=======
+    echo "  - clean: Cleans the current C/C++ project."
+    echo "      - USAGE: clean"
+    echo ""
+>>>>>>> Multiple changes
 }
 
 IFS=' ' read -ra ARGUMENTS <<< "$@"
@@ -45,6 +213,7 @@ case $command in
         print_help
         ;;
     build)
+<<<<<<< HEAD
         subargs=${ARGUMENTS[@]:1:${#ARGUMENTS[@]}}
         makeargs=""
         mode="debug"
@@ -173,6 +342,19 @@ case $command in
         fi
 
         sed -i "s/CProject/$projectname/g" premake4.lua
+=======
+        build ${ARGUMENTS[@]}
+        ;;
+    run)
+        build ${ARGUMENTS[@]}
+        run ${ARGUMENTS[@]}
+        ;;
+    clean)
+        clean
+        ;;
+    new)
+        new ${ARGUMENTS[@]}
+>>>>>>> Multiple changes
         ;;
     *)
         echo "Could not find the command \"$command\"."

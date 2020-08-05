@@ -1,12 +1,20 @@
+<<<<<<< HEAD
 # CProjMan - the Bash-based C/C++ project manager!
 
 This is a simple script, inspired by Rust's Cargo, to help with the creation, complimation and 
 running of C/C++ binaries using premake4 as it's build system. The commands are fairly 
+=======
+# CProjMan - the POSIX-shell-based C/C++ project manager!
+
+This is a simple script, inspired by Rust's Cargo, to help with the creation, complimation and 
+running of C/C++ binaries using premake5 as it's build system. The commands are fairly 
+>>>>>>> Multiple changes
 self-explanatory and thus, easy to use.
 
 To make the script even more useful, place it somewhere in your distro's PATH environment variable 
 so it can be accessed from any point.
 
+<<<<<<< HEAD
 ## Commands
 
 `cprojman` has three main commands, `run`, `build` and `new`:
@@ -35,6 +43,9 @@ Options:
 - `-d`, `--debug` (default): Builds the project in debug mode.
 - `-r`, `--release`: Builds the project in release mode.
 
+=======
+Requirements: `git` and `premake5`.
+>>>>>>> Multiple changes
 
 ## To Do
 
