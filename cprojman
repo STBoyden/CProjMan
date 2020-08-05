@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 begins_with() {
     case $2 in
@@ -12,9 +12,9 @@ begins_with() {
 run() {
     shift 1
 
-    local subargs="$@"
-    local mode="debug"
-    local projectname=$(cat premake5.lua | egrep "project" | awk '{print $2}' | sed 's/"//g')
+    subargs="$@"
+    mode="debug"
+    projectname=$(cat premake5.lua | egrep "project" | awk '{print $2}' | sed 's/"//g')
 
     for arg in $subargs; do 
         case $arg in
@@ -25,10 +25,10 @@ run() {
                 ;;
             *)
                 echo "Invalid argument"
+                exit
                 ;;
         esac
     done
-
 
     echo ""
     ./bin/$mode/$projectname
@@ -37,9 +37,9 @@ run() {
 build() {
     shift 1
 
-    local subargs="$@"
-    local makeargs=""
-    local mode="debug"
+    subargs="$@"
+    makeargs=""
+    mode="debug"
 
     for arg in $subargs; do
         case $arg in
@@ -51,59 +51,51 @@ build() {
                 ;;
             *)
                 echo "Invalid argument"
+                exit
                 ;;
         esac
     done
 
-    if [[ ! -f "premake5.lua" ]]; then
-        echo "Could not find the required \"premake5.lua\" file. Please either create the file manually, or use this" \
-             "script to do it automatically."
-        exit
-    fi
+    [ ! -f "premake5.lua" ] && { echo "Could not find the required \"premake5.lua\" file." ; exit ; }
 
-    local projectname="$(cat premake5.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
+    projectname="$(cat premake5.lua | grep "\sproject" | awk '{print $2}' | sed 's/"//g')"
 
     echo "----| Building in $mode mode |----"
 
     echo -n "Building Unix Makefiles using premake5..."
-    premake5 gmake >/dev/null && echo "Done." || echo "Could not finish."
+    premake5 gmake >/dev/null && echo "Done."
     echo -n "Cleaning any previous build artifacts..."
-    make clean >/dev/null && echo "Done." || echo "Could not finish."
+    make clean >/dev/null && echo "Done."
     echo -n "Building using make..."
-    make $makeargs >/dev/null && echo "Done." || echo "Could not finish."
+    make $makeargs >/dev/null && echo "Done."
 }
 
 new() {
-    local directory="$(echo $@ | awk '{print $2}')"
-    local projectname="$directory"
+    directory="$(echo $@ | awk '{print $2}')"
+    projectname="$directory"
     shift 2
-    local subargs="$@"
+    subargs="$@"
 
-    if begins_with "-" $directory; then
-        echo "Not a valid directory."
-        exit
-    fi
+    begins_with "-" $directory && { echo "Not a valid directory." ; exit ; }
 
-    if [[ -d  $directory ]]; then
-        echo "Cannot create directory \"$directory\", as it already exists. Please specify an empty directory."
-        exit
-    fi
-
+    [ -d $directory ] && { 
+        echo "Cannot create directory \"$directory\", as it already exists. Please specify an empty directory." 
+        exit 
+    }
 
     echo "----| Initialising project directory |----"
 
     echo -n "Cloning project template..."
-    git clone "$REPO" $directory &>/dev/null && echo "Done." || echo "Could not complete."
+    git clone "$REPO" $directory >/dev/null 2>&1 && echo "Done."
     cd $directory
     echo -n "Cleaning template..."
-    rm -rf .git &>/dev/null && echo "Done." || echo "Could not complete."
+    rm -rf .git >/dev/null && echo "Done."
 
     for arg in $subargs; do
         case $arg in
             -l=*|--lang=*)
-                local language="${arg#*=}"
-                local extension=".c"
-                shopt -s nocasematch
+                language="${arg#*=}"
+                extension=".c"
                 case $language in
                     cpp|c++|cxx)
                         language="C++"
@@ -118,8 +110,6 @@ new() {
                         exit
                         ;;
                 esac
-
-                shopt -u nocasematch
 
                 cd src 
                 for file in *; do
@@ -139,22 +129,19 @@ new() {
     sed -i "s/CProject/$projectname/g" premake5.lua
 
     echo -n "Initialising Git repository..."
-    git init &>/dev/null && echo "Done." || echo "Could not complete."
+    git init >/dev/null && echo "Done."
     git add .
-    git commit -m "Initial commit" &>/dev/null
+    git commit -m "Initial commit" >/dev/null
 }
 
 clean() {
     echo "----| Cleaning project |----"
 
-    if [[ ! -f "premake5.lua" ]]; then
-        echo "Either not in project directory or \"premake5.lua\" has been removed."
-        exit
-    fi
+    [ ! -f "premake5.lua" ] && { echo "Either not in project directory or \"premake5.lua\" has been removed." ; exit ; }
 
-    local to_delete=("bin" "obj" "CProject.make" "Makefile")
+    to_delete="bin obj CProject.make Makefile"
 
-    for fd in ${to_delete[@]}; do
+    for fd in $to_delete; do
         rm -rf $fd
     done
 
@@ -162,54 +149,55 @@ clean() {
 }
 
 print_help() {
-    echo "USAGE: cprojman [SUBCOMMAND]"
-    echo ""
-    echo "Available subcommands:"
-    echo "  - help: Print this help display."
-    echo ""
-    echo "  - new: Create a new C/C++ project."
-    echo "      - USAGE: new [PROJECTDIR] [OPTIONS]"
-    echo "      - OPTIONS:"
-    echo "          - -l=X, --lang=X: Set the project language to X (C/C++)."
-    echo "          - -n=X, --name=X: Set the project name to X."
-    echo ""
-    echo "  - run: Run the current C/C++ project."
-    echo "      - USAGE: run [OPTIONS]"
-    echo "      - OPTIONS:"
-    echo "          - -d, --debug: Set the project to build and run in debug mode (default mode)."
-    echo "          - -r, --release: Set the project to build and run in release mode."
-    echo ""
-    echo "  - build: Build the current C/C++ project."
-    echo "      - USAGE: build [OPTIONS]"
-    echo "      - OPTIONS:"
-    echo "          - -d, --debug: Set the project to build in debug mode (default mode)."
-    echo "          - -r, --release: Set the project to build in release mode."
-    echo ""
-    echo "  - clean: Cleans the current C/C++ project."
-    echo "      - USAGE: clean"
-    echo ""
+    cat <<!
+USAGE: cprojman [SUBCOMMAND]
+
+Available subcommands:
+  - help: Print this help display.
+
+  - new: Create a new C/C++ project.
+      - USAGE: new [PROJECTDIR] [OPTIONS]
+      - OPTIONS:
+          - -l=X, --lang=X: Set the project language to X (C/C++).
+          - -n=X, --name=X: Set the project name to X.
+
+  - run: Run the current C/C++ project.
+      - USAGE: run [OPTIONS]
+      - OPTIONS:
+          - -d, --debug: Set the project to build and run in debug mode (default mode).
+          - -r, --release: Set the project to build and run in release mode.
+
+  - build: Build the current C/C++ project.
+      - USAGE: build [OPTIONS]
+      - OPTIONS:
+          - -d, --debug: Set the project to build in debug mode (default mode).
+          - -r, --release: Set the project to build in release mode.
+
+  - clean: Cleans the current C/C++ project.
+      - USAGE: clean
+!
 }
 
-IFS=' ' read -ra ARGUMENTS <<< "$@"
+ARGUMENTS="$@"
 REPO="https://github.com/STBoyden/c-project-template"
 
-command=${ARGUMENTS[0]}
+command=$1
 
 case $command in
     help)
         print_help
         ;;
     build)
-        build ${ARGUMENTS[@]}
+        build $ARGUMENTS
         ;;
     run)
-        build ${ARGUMENTS[@]} && run ${ARGUMENTS[@]}
+        build $ARGUMENTS && run $ARGUMENTS
         ;;
     clean)
         clean
         ;;
     new)
-        new ${ARGUMENTS[@]}
+        new $ARGUMENTS
         ;;
     "")
         print_help
