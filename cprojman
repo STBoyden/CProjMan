@@ -30,8 +30,8 @@ run() {
     done
 
 
-    ./bin/$mode/$projectname
     echo ""
+    ./bin/$mode/$projectname
 }
 
 build() {
@@ -138,6 +138,8 @@ new() {
 
     sed -i "s/CProject/$projectname/g" premake5.lua
 
+    echo -n "Initialising Git repository..."
+    git init &>/dev/null && echo "Done." || echo "Could not complete."
     git add .
     git commit -m "Initial commit" &>/dev/null
 }
@@ -201,14 +203,16 @@ case $command in
         build ${ARGUMENTS[@]}
         ;;
     run)
-        build ${ARGUMENTS[@]}
-        run ${ARGUMENTS[@]}
+        build ${ARGUMENTS[@]} && run ${ARGUMENTS[@]}
         ;;
     clean)
         clean
         ;;
     new)
         new ${ARGUMENTS[@]}
+        ;;
+    "")
+        print_help
         ;;
     *)
         echo "Could not find the command \"$command\"."
