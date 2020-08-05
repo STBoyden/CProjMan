@@ -74,8 +74,8 @@ build() {
 }
 
 new() {
-    local projectname=""
     local directory="$(echo $@ | awk '{print $2}')"
+    local projectname="$directory"
     shift 2
     local subargs="$@"
 
@@ -93,12 +93,10 @@ new() {
     echo "----| Initialising project directory |----"
 
     echo -n "Cloning project template..."
-    git clone "$REPO" $directory &>/dev/null && echo "Done." || echo "Could not complete." && exit
+    git clone "$REPO" $directory &>/dev/null && echo "Done." || echo "Could not complete."
     cd $directory
     echo -n "Cleaning template..."
-    rm -rf .git &>/dev/null && echo "Done." || echo "Could not complete." && exit
-    echo -n "Creating a new Git repository..."
-    git init &>/dev/null && echo "Done." || echo "Could not complete." && exit
+    rm -rf .git &>/dev/null && echo "Done." || echo "Could not complete."
 
     for arg in $subargs; do
         case $arg in
@@ -137,14 +135,11 @@ new() {
                 ;;
         esac
     done
-    git add .
-
-    if [[ -z $projectname ]]; then
-        echo "No project name specified, using directory name instead."
-        projectname="$directory"
-    fi
 
     sed -i "s/CProject/$projectname/g" premake5.lua
+
+    git add .
+    git commit -m "Initial commit" &>/dev/null
 }
 
 clean() {
