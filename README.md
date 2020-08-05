@@ -13,3 +13,7 @@ so it can be accessed from any point.
 
 - [ ] Auto update script
 - [x] Display command help on invalid usage.
+
+
+# Thanks
+Special thanks to **aosync#3115** on helping making this script more POSIX compliant.
